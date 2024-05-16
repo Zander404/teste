@@ -4,7 +4,7 @@ import requests
 from time import sleep
 
 
-WEIGHT_SCREEN = 660
+WIDTH_SCREEN = 660
 HEIGHT_SCREEN = 500
 BG_COLOR = '#851642'
 
@@ -80,7 +80,7 @@ class Login(UserControl):
     # Metodos
     def open(self):
         sleep(0.35)
-        self.main.width = WEIGHT_SCREEN
+        self.main.width = WIDTH_SCREEN
         self.main.update()
         sleep(0.75)
         self.main_box.visible = True
@@ -173,13 +173,44 @@ class MainPage(UserControl):
                             opacity=100,
                             animate_opacity=800,
                             visible=False,)
+
+        self.content_box = Column(
+            alignment=MainAxisAlignment.END,
+            horizontal_alignment=CrossAxisAlignment.END,
+            spacing=20,
+            animate_offset=800,
+            visible=True,
+        )
+
+        self.title = Text(value='Lobby')
+
+        self.btns = Row(
+            alignment=MainAxisAlignment.CENTER,
+            vertical_alignment=CrossAxisAlignment.START,
+            spacing=20,
+            opacity=100,
+            animate_opacity=800,
+            visible=True,
+
+            controls=[
+                self.button(text='Return',
+                            btn_function=lambda x: self.route(text='back')),
+                self.button(text='Animes',
+                            btn_function=lambda x: self.route('anime')),
+                self.button(text='Rick and Morty',
+                            btn_function=lambda x: self.route('ram')),
+
+            ]
+
+        )
+
         super().__init__()
 
-    # Metodos
+    # Metodos de Controle
 
     def open(self):
         sleep(0.35)
-        self.main.width = WEIGHT_SCREEN
+        self.main.width = WIDTH_SCREEN
         self.main.update()
 
         sleep(0.75)
@@ -187,13 +218,236 @@ class MainPage(UserControl):
         self.main_box.update()
 
     def close(self):
-        ...
+        self.main_box.visible = False
+        self.main_box.update()
+        sleep(0.35)
+
+        self.main.width = 0
+        self.main.update()
+        sleep(0.75)
+
+        self.page.controls.remove(self)
+        sleep(0.35)
+
+        self.login = Login()
+        self.page.controls.insert(0, self.login)
+        self.page.update()
+
+        self.login.open()
+
+    def button(self, text: str, btn_function):
+        return ElevatedButton(
+            icon=icons.BACK_HAND_OUTLINED,
+            text=text,
+            on_click=btn_function
+        )
+
+    def route(self, text: str):
+
+        self.main_box.visible = False
+        self.main_box.update()
+        sleep(0.35)
+
+        self.main.width = 0
+        self.main.update()
+        sleep(0.75)
+
+        self.page.controls.remove(self)
+
+        if text == 'ram':
+            ram = Rick_and_Morty()
+            self.page.controls.insert(0, ram)
+            self.page.update()
+            ram.open()
+
+        elif text == 'anime':
+            anime = Anime()
+            self.page.controls.insert(0, anime)
+            self.page.update()
+            anime.open()
+
+        else:
+            ...
+
+    # Metodos da Classe
 
     def build(self):
 
+        main_box_items = [
 
-        self.main_box.controls.append(Text('ALLLLLLLOOOOOO'))
+            self.btns
+        ]
 
+        for item in main_box_items:
+            self.content_box.controls.append(item)
+
+        self.main_box.controls.append(self.title)
+        self.main_box.controls.append(self.content_box)
+        self.main.content = self.main_box
+        return self.main
+
+
+class Anime(UserControl):
+    def __init__(self):
+
+        self.main = Container(
+            padding=10,
+            width=0,
+            height=HEIGHT_SCREEN,
+            bgcolor=BG_COLOR,
+            animate=animation.Animation(
+                550, animation.AnimationCurve.EASE_IN_OUT)
+
+        )
+
+        self.main_box = Row(
+            alignment=MainAxisAlignment.CENTER,
+            vertical_alignment=CrossAxisAlignment.CENTER,
+            spacing=20,
+            opacity=100,
+            animate_opacity=800,
+            visible=False
+        )
+
+        self.content_box = Column(
+            alignment=MainAxisAlignment.CENTER,
+            horizontal_alignment=CrossAxisAlignment.CENTER,
+            opacity=100,
+            animate_opacity=800,
+            visible=True
+        )
+
+        self.title = Text(value='ANIMES')
+
+        self.return_btn = self.btn('Voltar', lambda x: self.close())
+
+        super().__init__()
+
+    def open(self):
+        sleep(0.35)
+        self.main.width = WIDTH_SCREEN
+        self.main.update()
+
+        sleep(0.75)
+        self.main_box.visible = True
+        self.main_box.update()
+
+    def close(self):
+        self.main_box.visible = False
+        self.main_box.update()
+        sleep(0.35)
+
+        self.main.width = 0
+        self.main.update()
+        sleep(0.75)
+
+        self.page.controls.remove(self)
+        main_page = MainPage()
+        self.page.controls.insert(0, main_page)
+        self.page.update()
+        main_page.open()
+
+    def btn(self, text, btn_function, icons=icons.UNDO):
+        return ElevatedButton(
+            icon=icons,
+            text=text,
+            on_click=btn_function,
+            # style={'': RoundedRectangleBorder(0)}
+        )
+
+    def build(self):
+        content_items = [
+            self.return_btn
+
+        ]
+
+        for i in content_items:
+            self.content_box.controls.append(i)
+
+        self.main_box.controls.append(self.title)
+        self.main_box.controls.append(self.content_box)
+        self.main.content = self.main_box
+        return self.main
+
+
+class Rick_and_Morty(UserControl):
+    def __init__(self):
+
+        self.main = Container(
+            width=0,
+            height=HEIGHT_SCREEN,
+            bgcolor=BG_COLOR,
+            animate=animation.Animation(
+                550, animation.AnimationCurve.EASE_IN_OUT)
+        )
+
+        self.main_box = Row(
+            alignment=MainAxisAlignment.CENTER,
+            vertical_alignment=CrossAxisAlignment.CENTER,
+            spacing=20,
+            opacity=100,
+            animate_opacity=800,
+            visible=False
+        )
+
+        self.content_box = Column(
+            alignment=MainAxisAlignment.CENTER,
+            horizontal_alignment=CrossAxisAlignment.CENTER,
+            spacing=20
+        )
+
+        self.title = Text(value='RICK AND MORTY')
+
+        self.return_btn = self.btn(text='Voltar', btn_function=lambda x: self.close())
+
+        super().__init__()
+
+    def open(self):
+
+        sleep(0.35)
+        self.main.width = WIDTH_SCREEN
+        self.main.update()
+
+        sleep(0.75)
+        self.main_box.visible = True
+        self.main_box.update()
+
+    def close(self):
+        self.main_box.visible = False
+        self.main_box.update()
+        sleep(0.35)
+
+        self.main.width = 0
+        self.main.update()
+        sleep(0.75)
+
+        self.page.controls.remove(self)
+        main_page = MainPage()
+        self.page.controls.insert(0, main_page)
+        self.page.update()
+        main_page.open()
+
+
+    def btn(self, text:str, btn_function, icons=icons.UNDO):
+        return ElevatedButton(
+            text=text,
+            on_click=btn_function,
+            icon=icons,
+
+        )
+
+    def build(self):
+
+        content_box_items = [
+            self.return_btn,
+
+        ]
+
+        for i in content_box_items:
+            self.content_box.controls.append(i)
+
+        self.main_box.controls.append(self.title)
+        self.main_box.controls.append(self.content_box)
         self.main.content = self.main_box
         return self.main
 
@@ -210,11 +464,25 @@ def main(page: Page):
     page.horizontal_alignment = "center"
     page.vertical_alignment = 'center'
 
-    teste = Login()
+    # teste = Login()
+    # page.add(teste)
+    # page.update()
+    # teste.open()
 
-    page.add(teste)
-    teste.open()
+    # main_page = MainPage()
+    # page.add(main_page)
+    # page.update()
+    # main_page.open()
+
+    anime = Anime()
+    page.add(anime)
     page.update()
+    anime.open()
+
+    # ram = Rick_and_Morty()
+    # page.add(ram)
+    # page.update()
+    # ram.open()
 
 
 if __name__ == '__main__':
