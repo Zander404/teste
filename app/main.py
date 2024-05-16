@@ -1,6 +1,7 @@
 import flet
 from flet import *
 import requests
+from time import sleep
 
 
 WEIGHT_SCREEN = 660
@@ -16,19 +17,19 @@ class Login(UserControl):
 
         self.main = Container(
             padding=10,
-            width=WEIGHT_SCREEN,
+            width=0,
             height=HEIGHT_SCREEN,
             bgcolor=BG_COLOR,
-            animate=animation.Animation(550, AnimationCurve.EASE_IN_OUT)
-
+            animate=animation.Animation(550, AnimationCurve.EASE_IN_OUT),
         )
+
         self.main_box = Row(
             alignment=MainAxisAlignment.CENTER,
             vertical_alignment=CrossAxisAlignment.START,
             spacing=20,
             opacity=100,
             animate_opacity=800,
-            visible=True,
+            visible=False,
         )
 
         self.content_box = Column(
@@ -69,19 +70,51 @@ class Login(UserControl):
             on_click=lambda x: self.login()
         )
 
-        self.error_message = Text('Email ou Senha Inválido!', color='red', visible=False)
+        self.loading = ProgressRing(visible=False)
+
+        self.error_message = Text(
+            'Email ou Senha Inválido!', color='red', visible=False)
 
         super().__init__()
 
     # Metodos
+    def open(self):
+        sleep(0.35)
+        self.main.width = WEIGHT_SCREEN
+        self.main.update()
+        sleep(0.75)
+        self.main_box.visible = True
+        self.main_box.update()
+
+    def close(self):
+        sleep(0.35)
+        self.main_box.visible = False
+        self.main.update()
+        sleep(0.5)
+        self.main.width = 0
+        self.main.update()
+        sleep(0.75)
+
+        self.page.controls.remove(self)
+        self.main_page = MainPage()
+
+        self.page.controls.insert(0, self.main_page)
+        self.page.update()
+        sleep(0.35)
+        self.main_page.open()
+
     def login(self):
         user_name = self.user_name_tf.value
         user_password = self.user_password_tf.value
+
+        self.loading.visible = True
+        self.loading.update()
 
         self.error_message.visible = False
         self.error_message.update()
 
         try:
+
             print(user_name)
             print(user_password)
             request = requests.post(
@@ -89,8 +122,14 @@ class Login(UserControl):
 
             if request.status_code == 200:
                 print('Foi')
+                self.loading.visible = False
+                self.loading.update()
+                self.close()
 
             else:
+                self.loading.visible = False
+                self.loading.update()
+
                 self.error_message.visible = True
                 self.error_message.update()
 
@@ -106,13 +145,12 @@ class Login(UserControl):
             self.user_password_tf,
             Divider(),
             self.login_bt,
+            self.loading,
             self.error_message
         ]
 
-
         for item in content_box_items:
             self.content_box.controls.append(item)
-
 
         self.main_box.controls.append(self.content_box)
         self.main.content = self.main_box
@@ -121,10 +159,43 @@ class Login(UserControl):
 
 class MainPage(UserControl):
     def __init__(self):
+        self.main = Container(
+            padding=10,
+            width=0,
+            height=HEIGHT_SCREEN,
+            bgcolor=BG_COLOR,
+            animate=animation.Animation(550, AnimationCurve.EASE_IN_OUT),
+        )
+
+        self.main_box = Row(alignment=MainAxisAlignment.CENTER,
+                            vertical_alignment=CrossAxisAlignment.START,
+                            spacing=20,
+                            opacity=100,
+                            animate_opacity=800,
+                            visible=False,)
+        super().__init__()
+
+    # Metodos
+
+    def open(self):
+        sleep(0.35)
+        self.main.width = WEIGHT_SCREEN
+        self.main.update()
+
+        sleep(0.75)
+        self.main_box.visible = True
+        self.main_box.update()
+
+    def close(self):
         ...
 
     def build(self):
-        ...
+
+
+        self.main_box.controls.append(Text('ALLLLLLLOOOOOO'))
+
+        self.main.content = self.main_box
+        return self.main
 
 
 class PlaceHolder(UserControl):
@@ -142,6 +213,8 @@ def main(page: Page):
     teste = Login()
 
     page.add(teste)
+    teste.open()
+    page.update()
 
 
 if __name__ == '__main__':
