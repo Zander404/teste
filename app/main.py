@@ -2,6 +2,7 @@ import flet
 from flet import *
 import requests
 from time import sleep
+import json
 
 
 WIDTH_SCREEN = 660
@@ -289,24 +290,25 @@ class MainPage(UserControl):
 
 class Anime(UserControl):
     def __init__(self):
+        self.num_page = 1
 
         self.main = Container(
-            padding=10,
             width=0,
             height=HEIGHT_SCREEN,
             bgcolor=BG_COLOR,
+            padding=50,
             animate=animation.Animation(
                 550, animation.AnimationCurve.EASE_IN_OUT)
 
         )
 
-        self.main_box = Row(
+        self.main_box = Column(
             alignment=MainAxisAlignment.CENTER,
-            vertical_alignment=CrossAxisAlignment.CENTER,
+            horizontal_alignment=CrossAxisAlignment.CENTER,
             spacing=20,
             opacity=100,
             animate_opacity=800,
-            visible=False
+            visible=False,
         )
 
         self.content_box = Column(
@@ -314,12 +316,37 @@ class Anime(UserControl):
             horizontal_alignment=CrossAxisAlignment.CENTER,
             opacity=100,
             animate_opacity=800,
-            visible=True
+            visible=True,
+            height=HEIGHT_SCREEN-100,
+
         )
 
         self.title = Text(value='ANIMES')
 
         self.return_btn = self.btn('Voltar', lambda x: self.close())
+
+        # Componente de image
+        self.images_anime = GridView(
+            expand=1,
+            runs_count=1,
+            max_extent=76,
+            child_aspect_ratio=0.6,
+            spacing=5,
+            run_spacing=5,
+            height=HEIGHT_SCREEN-300
+
+        )
+
+        self.btns = Row(
+            alignment=MainAxisAlignment.CENTER,
+            height=100,
+            controls=[
+                self.btn(text='previous', btn_function=lambda x: self.page_control(
+                    direction='previous'), icons=icons.SKIP_PREVIOUS),
+                self.btn(text='next', btn_function=lambda x: self.page_control(
+                    direction='next'), icons=icons.SKIP_NEXT_OUTLINED),
+            ]
+        )
 
         super().__init__()
 
@@ -355,9 +382,56 @@ class Anime(UserControl):
             # style={'': RoundedRectangleBorder(0)}
         )
 
+    def page_control(self, direction: str = 'init'):
+        if direction == 'next':
+            self.num_page += 1
+            response = self.request(self.num_page)
+            self.images_anime.clean()
+
+
+        elif direction == 'previous':
+            self.num_page -= 1
+            response = self.request(self.num_page)
+            self.images_anime.clean()
+
+        else:
+            response = self.request(self.num_page)
+            self.images_anime.clean()
+
+
+        count = self.num_page*10
+
+        for i in range(0, len(response)):
+            self.images_anime.controls.append(
+                Container(
+                    content=Image(
+                        src=response[i]['image'],
+                        fit=ImageFit.COVER,
+                        repeat=ImageRepeat.NO_REPEAT,
+                        border_radius=border_radius.all(10),
+                        data=response[i]['name']
+
+                    ),
+                    key=count,
+
+                    on_click=lambda x: print(x.control.content.data)
+                )
+            )
+            count += 1
+
+        self.images_anime.update()
+
+    def request(self, page:int=1):
+        response = requests.get(
+            f'https://rickandmortyapi.com/api/character/?page={page}')
+        data = response.json()['results']
+        return data
+
     def build(self):
         content_items = [
-            self.return_btn
+            self.return_btn,
+            self.images_anime,
+            self.btns,
 
         ]
 
@@ -367,6 +441,7 @@ class Anime(UserControl):
         self.main_box.controls.append(self.title)
         self.main_box.controls.append(self.content_box)
         self.main.content = self.main_box
+
         return self.main
 
 
@@ -398,7 +473,8 @@ class Rick_and_Morty(UserControl):
 
         self.title = Text(value='RICK AND MORTY')
 
-        self.return_btn = self.btn(text='Voltar', btn_function=lambda x: self.close())
+        self.return_btn = self.btn(
+            text='Voltar', btn_function=lambda x: self.close())
 
         super().__init__()
 
@@ -427,8 +503,7 @@ class Rick_and_Morty(UserControl):
         self.page.update()
         main_page.open()
 
-
-    def btn(self, text:str, btn_function, icons=icons.UNDO):
+    def btn(self, text: str, btn_function, icons=icons.UNDO):
         return ElevatedButton(
             text=text,
             on_click=btn_function,
@@ -478,6 +553,7 @@ def main(page: Page):
     page.add(anime)
     page.update()
     anime.open()
+    anime.page_control()
 
     # ram = Rick_and_Morty()
     # page.add(ram)
