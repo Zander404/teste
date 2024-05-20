@@ -358,6 +358,7 @@ class Anime(UserControl):
         sleep(0.75)
         self.main_box.visible = True
         self.main_box.update()
+        self.page_control()
 
     def close(self):
         self.main_box.visible = False
